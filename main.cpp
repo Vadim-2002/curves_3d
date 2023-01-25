@@ -164,8 +164,19 @@ class Helix : public Circle
 double sum_of_radii(std::vector<Curves*> curv_2)
 {
     double sum_r = 0;
-    for (int i = 0; i < curv_2.size(); i++)
-        sum_r += ((Circle*)curv_2[i])->get_R();
+    omp_set_num_threads(4);
+
+    #pragma omp parallel
+    {
+        double local_sum = 0;
+        #pragma omp for
+        for (int i = 0; i < curv_2.size(); i++)
+        {
+            local_sum += ((Circle*)curv_2[i])->get_R();
+        }
+        #pragma omp atomic
+        sum_r += local_sum;
+    }
 
     return sum_r;
 }
